@@ -7180,7 +7180,7 @@ def classifySB(sp,ref='burgasser2010',output='classification',spt='',indices=Non
 
 
 
-def compareSpectra(s1, s2, statistic='chisqr',scale=True, novar2=True, plot=False, verbose=False, **kwargs):
+def compareSpectra(s1, s2, statistic='chisqr',scale=True, scale_range=None, novar2=True, plot=False, verbose=False, **kwargs):
     '''
     :Purpose: 
 
@@ -7297,8 +7297,28 @@ def compareSpectra(s1, s2, statistic='chisqr',scale=True, novar2=True, plot=Fals
     if (statistic == 'chisqr' or statistic == 'chisq' or statistic == 'chi'):
 # compute scale factor
         if scale == True:
-            scale_factor = numpy.nansum(weights*sp1.flux.value*f(sp1.wave.value)/vtot)/ \
-                numpy.nansum(weights*f(sp1.wave.value)*f(sp1.wave.value)/vtot)
+            if scale_range is not None:
+                # Check if scale_range is in valid format
+                if len(scale_range) == 2 and all(isinstance(i, (int, float)) for i in scale_range):
+                    # Convert scale_range to appropriate units
+                    scale_range = (scale_range*u.micron).to(sp1.wave.unit)
+                    # Extract the flux in the scale_range for both spectra
+                    flux_s1_in_range = sp1.flux[(sp1.wave >= scale_range[0]) & (sp1.wave <= scale_range[1])]
+                    flux_s2_in_range = f(sp1.wave[(sp1.wave >= scale_range[0]) & (sp1.wave <= scale_range[1])])
+                
+                    # Compute the median flux in the scale_range for both spectra
+                    median_flux_s1 = numpy.nanmedian(flux_s1_in_range)
+                    median_flux_s2 = numpy.nanmedian(flux_s2_in_range)
+                
+                    # Scale the second spectrum
+                    scale_factor = median_flux_s1 / median_flux_s2
+                    sp2.flux = sp2.flux * scale_factor
+                else:
+                    raise ValueError('scale_range should be a two-element iterable of numbers (min, max)')
+
+            else:            
+                scale_factor = numpy.nansum(weights*sp1.flux.value*f(sp1.wave.value)/vtot)/ \
+                    numpy.nansum(weights*f(sp1.wave.value)*f(sp1.wave.value)/vtot)
 
 # correct variance
         vtot = numpy.nanmax([sp1.variance.value,v(sp1.wave.value)*(scale_factor**2)],axis=0)
