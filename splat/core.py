@@ -7308,12 +7308,10 @@ def compareSpectra(s1, s2, statistic='chisqr',scale=True, scale_range=None, nova
                     # Compute the median flux in the scale_range for both spectra
                     median_flux_s1 = numpy.nanmedian(flux_s1_in_range)
                     median_flux_s2 = numpy.nanmedian(flux_s2_in_range)
-                    print(median_flux_s1)
-                    print(median_flux_s2)
+
                     # Scale the second spectrum
                     scale_factor = median_flux_s1 / median_flux_s2
                     sp2.flux = sp2.flux * scale_factor
-                    print(scale_factor)
 
                 else:
                     raise ValueError('scale_range should be a two-element iterable of numbers (min, max)')
