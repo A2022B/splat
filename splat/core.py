@@ -1886,33 +1886,33 @@ class Spectrum(object):
 
 
     def normalize(self,*args,**kwargs):
-    '''
-    :Purpose: 
+        '''
+        :Purpose: 
 
-        Normalize a spectrum by dividing by the median over a wavelength range
+            Normalize a spectrum by dividing by the median over a wavelength range
 
-    :Required Inputs: 
+        :Required Inputs: 
 
-        None
+            None
 
-    :Optional Inputs: 
+        :Optional Inputs: 
 
-        :param wave_range: choose the wavelength range to normalize; can be a list specifying minimum and maximum or a single wavelength (default = None); alternate keywords: `wave_range`, `range`
+            :param wave_range: choose the wavelength range to normalize; can be a list specifying minimum and maximum or a single wavelength (default = None); alternate keywords: `wave_range`, `range`
 
-    :Output: 
+        :Output: 
 
-        None; spectrum is normalized
+            None; spectrum is normalized
 
-    :Example:
-        >>> import splat
-        >>> sp = splat.getSpectrum(lucky=True)[0]
-        >>> sp.normalize()
-        >>> sp.flux.median()
-        <Quantity 1.0 erg / (cm2 micron s)>
-        >>> sp.normalize(waverange=[2.25,2.3])
-        >>> sp.flux.median()
-        <Quantity 0.5 erg / (cm2 micron s)>
-    '''
+        :Example:
+           >>> import splat
+           >>> sp = splat.getSpectrum(lucky=True)[0]
+           >>> sp.normalize()
+           >>> sp.fluxMax()
+           <Quantity 1.0 erg / (cm2 micron s)>
+           >>> sp.normalize(waverange=[2.25,2.3])
+           >>> sp.fluxMax()
+           <Quantity 1.591310977935791 erg / (cm2 micron s)>
+        '''
         rng = kwargs.get('wave_range',False)
         rng = kwargs.get('waverange',rng)
         rng = kwargs.get('range',rng)
@@ -1921,6 +1921,10 @@ class Spectrum(object):
         if rng is not False:
             if not isinstance(rng,list) and not isinstance(rng,numpy.ndarray):
                 rng = [rng]
+            if isUnit(rng[0]): rng = [r.to(self.wave.unit).value for r in rng]
+            if isUnit(rng): rng = rng.to(self.wave.unit).value
+            if numpy.nanmax(rng) > numpy.nanmax(self.wave.value) or numpy.nanmin(rng) < numpy.nanmin(self.wave.value):
+                print('\nWarning: normalization range {} is outside range of spectrum wave array: {}'.format(rng,[numpy.nanmin(self.wave.value),numpy.nanmax(self.wave.value)]))
             if len(rng) == 1:
                 f = interp1d(self.wave.value,self.flux.value)
                 scalefactor = f(rng[0])
@@ -1928,7 +1932,7 @@ class Spectrum(object):
                 scalefactor = numpy.nanmedian(self.flux.value[numpy.where(numpy.logical_and(self.wave.value > rng[0],self.wave.value < rng[1]))])
         else:
             scalefactor = numpy.nanmedian(self.flux.value)
-    
+        if isUnit(scalefactor): scalefactor = scalefactor.value
         if scalefactor == 0.: print('\nWarning: normalize is attempting to divide by zero; ignoring')
         elif numpy.isnan(scalefactor) == True: print('\nWarning: normalize is attempting to divide by nan; ignoring')
         else: 
