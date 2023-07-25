@@ -6206,7 +6206,7 @@ def classifyByIndex(sp,ref='burgasser',string_flag=True,round_flag=False,remeasu
 
 
 
-def classifyByStandard(sp, std_class='dwarf',dof=-1, verbose=False,**kwargs):
+def classifyByStandard(sp, std_class='dwarf', scale_range=None, dof=-1, verbose=False,**kwargs):
     '''
     :Purpose: 
         Determine the spectral type and uncertainty for a
@@ -6423,7 +6423,7 @@ def classifyByStandard(sp, std_class='dwarf',dof=-1, verbose=False,**kwargs):
 
     for t in spt_sample:
 #        chisq,scale = compareSpectra(sp,stds[typeToNum(t,subclass=subclass)],fit_ranges=fit_ranges,statistic=statistic,novar2=True)
-        chisq,scale = compareSpectra(sp,stds[t],fit_ranges=fit_ranges,statistic=statistic,novar2=True)
+        chisq,scale = compareSpectra(sp,stds[t],fit_ranges=fit_ranges,statistic=statistic,scale_range=scale_range,novar2=True)
         stat.append(chisq)
         sspt.append(t)
         if verbose==True: print('Type {}: statistic = {}, scale = {}'.format(t, chisq, scale))
